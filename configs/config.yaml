@@ -1,0 +1,127 @@
+# Speaker Identification Configuration
+
+# Data configuration
+data:
+  raw_dir: "data/raw"
+  processed_dir: "data/processed"
+  sample_rate: 16000
+  max_duration: 10.0  # seconds
+  min_duration: 1.0   # seconds
+  
+  # Dataset splits
+  train_split: 0.7
+  val_split: 0.15
+  test_split: 0.15
+  
+  # Speaker-wise splitting (no speaker leakage)
+  speaker_wise_split: true
+
+# Feature extraction
+features:
+  # MFCC parameters
+  mfcc:
+    n_mfcc: 13
+    n_fft: 1024
+    hop_length: 512
+    n_mels: 80
+    
+  # Mel-spectrogram parameters
+  mel_spec:
+    n_fft: 1024
+    hop_length: 512
+    n_mels: 80
+    f_min: 0
+    f_max: 8000
+    
+  # Preprocessing
+  preemphasis: 0.97
+  normalize: true
+  cmvn: true  # Cepstral Mean and Variance Normalization
+
+# Model configuration
+model:
+  # Model type: "mfcc_knn", "mfcc_svm", "xvector", "ecapa_tdnn"
+  type: "mfcc_knn"
+  
+  # MFCC + Traditional ML models
+  mfcc_knn:
+    n_neighbors: 3
+    weights: "distance"
+    metric: "euclidean"
+    
+  mfcc_svm:
+    kernel: "rbf"
+    C: 1.0
+    gamma: "scale"
+    
+  # Deep learning models
+  xvector:
+    input_dim: 80  # mel-spectrogram features
+    hidden_dims: [512, 512, 512, 512, 1500]
+    embedding_dim: 512
+    dropout: 0.5
+    
+  ecapa_tdnn:
+    input_dim: 80
+    channels: [512, 512, 512, 512, 1536]
+    kernel_sizes: [5, 3, 3, 3, 1]
+    dilations: [1, 2, 3, 4, 1]
+    attention_channels: 128
+    embedding_dim: 192
+
+# Training configuration
+training:
+  batch_size: 32
+  num_epochs: 100
+  learning_rate: 0.001
+  weight_decay: 1e-4
+  patience: 10  # early stopping patience
+  
+  # Optimizer
+  optimizer: "adam"
+  scheduler: "cosine"
+  
+  # Loss function
+  loss: "cross_entropy"
+  
+  # Data augmentation
+  augmentation:
+    speed_perturb: true
+    noise_augment: true
+    noise_snr_range: [10, 30]  # dB
+    reverb_augment: false
+
+# Evaluation configuration
+evaluation:
+  metrics:
+    - "accuracy"
+    - "top_k_accuracy"
+    - "eer"  # Equal Error Rate
+    - "min_dcf"  # Minimum Detection Cost Function
+    - "det_curve"  # Detection Error Trade-off curve
+    
+  top_k_values: [1, 5, 10]
+  
+  # Speaker verification thresholds
+  verification_threshold: 0.5
+
+# Device configuration
+device: "auto"  # auto, cpu, cuda, mps
+
+# Logging
+logging:
+  level: "INFO"
+  log_dir: "logs"
+  tensorboard: true
+  wandb: false
+  wandb_project: "speaker-identification"
+
+# Reproducibility
+seed: 42
+deterministic: true
+
+# Privacy and ethics
+privacy:
+  anonymize_filenames: true
+  remove_pii_from_logs: true
+  disclaimer_required: true
